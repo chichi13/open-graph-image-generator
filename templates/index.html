@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OG Image Generator</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 2em; max-width: 800px; margin: auto; }
+        code { background-color: #f4f4f4; padding: 0.2em 0.4em; border-radius: 3px; }
+        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; overflow-x: auto; }
+        h1, h2 { border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .endpoint { margin-bottom: 1.5em; }
+        .param { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Open Graph (OG) Image Generator Service</h1>
+    <p>This service generates OG:Image compatible screenshots from web pages.</p>
+
+    <h2>How to Use</h2>
+
+    <h3>Option 1: Direct Redirect (Root Endpoint)</h3>
+    <p>Make a GET request to the root URL (<code>/</code>) with a <code>url</code> query parameter. The service will generate the image (or use a cached version) and redirect your browser directly to the final image URL.</p>
+    <p><strong>Example:</strong></p>
+    <pre><code id="root-example">/</code></pre>
+    <p><button onclick="tryRootUrl()">Try it (Enter URL)</button></p>
+
+
+    <h3>Option 2: API Endpoint (Recommended for programmatic use)</h3>
+    <p>Make a GET request to the <code>/generate</code> endpoint.</p>
+    
+    <div class="endpoint">
+        <p><strong>Endpoint:</strong> <code>GET /generate</code></p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><span class="param">url</span> (required): The full URL to screenshot (e.g., <code>https://example.com</code>). Must be URL encoded.</li>
+            <li><span class="param">ttl</span> (optional): Cache Time-To-Live in hours. Defaults to {{ default_ttl_hours }} hours.</li>
+            <li><span class="param">width</span> (optional): Screenshot width in pixels. Defaults to 1200.</li>
+            <li><span class="param">height</span> (optional): Screenshot height in pixels. Defaults to 630.</li>
+            <li><span class="param">force_refresh</span> (optional): Set to <code>true</code> to ignore cache and regenerate. Defaults to false.</li>
+        </ul>
+        <p><strong>Response:</strong></p>
+        <ul>
+            <li>If cached/ready: Returns a <code>202 Accepted</code>* with JSON: <br><code>{ "status": "cached", "image_url": "..." }</code></li>
+            <li>If starting generation: Returns a <code>202 Accepted</code> with JSON:<br> <code>{ "status": "processing", "task_id": "...", "check_status_url": "..." }</code></li>
+        </ul>
+        <small>*Note: Due to limitations, cached responses might also return 202; check the "status" field.</small>
+        <p><strong>Example:</strong></p>
+        <pre><code id="api-example">/generate?url=</code></pre>
+        <p><button onclick="promptUrl('api-example', '/generate?url=')">Try it (Enter URL)</button></p>
+
+    </div>
+
+    <div class="endpoint">
+        <p><strong>Endpoint:</strong> <code>GET /status/{task_id}</code></p>
+        <p>Check the status of a generation task using the <code>task_id</code> returned by <code>/generate</code>.</p>
+        <p><strong>Response:</strong><br>
+        <code>{ "status": "pending|processing|completed|failed", "image_url": "..." | null, "error_message": "..." | null }</code></p>
+    </div>
+
+    <script>
+        function tryRootUrl() {
+            const defaultUrl = "https://example.com";
+            const url = prompt("Enter the full URL to generate an OG image for (Root Redirect):", defaultUrl);
+            if (url) {
+                const encodedUrl = encodeURIComponent(url);
+                const fullPath = '/?url=' + encodedUrl;
+                document.getElementById('root-example').textContent = fullPath; // Update example text
+                window.location.href = fullPath; // Navigate to the URL
+            }
+        }
+
+        function promptUrl(elementId, prefix) {
+            const defaultUrl = "https://example.com";
+            const url = prompt("Enter the full URL to generate an OG image for (API Example):", defaultUrl);
+            if (url) {
+                const encodedUrl = encodeURIComponent(url);
+                const fullPath = prefix + encodedUrl;
+                document.getElementById(elementId).textContent = fullPath;
+                // Open the API link in a new tab to see the JSON response
+                window.open(fullPath, '_blank'); 
+            }
+        }
+        // Set initial example URLs
+        document.getElementById('root-example').textContent = '/?url=' + encodeURIComponent('https://example.com');
+        document.getElementById('api-example').textContent = '/generate?url=' + encodeURIComponent('https://example.com');
+    </script>
+
+</body>
+</html> 

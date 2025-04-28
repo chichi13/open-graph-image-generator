@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ # Enforce English Language Usage
+
+Ensure all code, comments, and documentation are written in English.
+
+<rule>
+name: enforce_english_language
+description: Detects potential non-English (specifically French) words in comments and strings.
+filters:
+  # Match Python and Markdown files
+  - type: file_extension
+    pattern: "\.(py|md)$"
+  # Match lines containing comments or string literals
+  - type: content
+    pattern: "(#.*|\"[^\"]*\"|'[^']*')"
+
+actions:
+  # Suggest changing common French words found in comments or strings
+  - type: suggest
+    conditions:
+      # Basic pattern for common French articles, prepositions, etc. in comments or strings
+      # This is a basic heuristic and might need refinement for accuracy.
+      - pattern: "(#|\"|').*(le|la|les|un|une|des|pour|dans|avec|sur|sous|qui|que|quoi|\b(est|sont|ont|sont|fait|faire|utiliser|fonction)\b).*"
+        ignore_case: true
+        message: |
+          Potential non-English word detected. Please use English for all code, comments, and documentation.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Match: {{ .match }}
+
+metadata:
+  priority: medium
+  version: 1.0
+  references:
+    - Project README section on language rules
+</rule> 

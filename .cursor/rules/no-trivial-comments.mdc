@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ # Discourage Trivial Comments
+
+Avoid comments that merely restate obvious code.
+
+<rule>
+name: no_trivial_comments
+description: Detects comments that likely restate simple, obvious code.
+filters:
+  - type: file_extension
+    pattern: "\.py$"
+  # Match lines that are comments
+  - type: content
+    pattern: "^\s*#.*"
+
+actions:
+  # Suggest removing comments that seem trivial
+  - type: suggest
+    conditions:
+      # Pattern for comments like '# increment x', '# assign y', '# return z', etc.
+      # This is a basic heuristic.
+      - pattern: "(?i)^\s*#\s*(increment|decrement|assign|set|get|return|initialize|define|call|loop|iterate|check if|is)\\s+[a-zA-Z0-9_]+\\s*($|:)"
+        message: |
+          This comment seems to restate obvious code. Consider removing it if it doesn't add significant clarification.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Comment: {{ .match }}
+
+metadata:
+  priority: low
+  version: 1.0
+  references:
+    - Project README section on comments
+</rule> 

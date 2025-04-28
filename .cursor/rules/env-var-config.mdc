@@ -1,0 +1,62 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ # Use Pydantic BaseSettings for Configuration
+
+Configuration values (API keys, DB URLs, etc.) should be managed using Pydantic's `BaseSettings` (from `pydantic-settings`) to load from environment variables, not hardcoded or accessed directly via `os.environ` outside the settings model.
+
+<rule>
+name: use_pydantic_basesettings
+description: Detects hardcoded secrets/config or direct os.environ usage; recommends Pydantic BaseSettings.
+filters:
+  - type: file_extension
+    pattern: "\.py$"
+  # Exclude files likely defining the BaseSettings model itself
+  - type: file_path
+    pattern: "(config|settings)\.py"
+    exclude: true
+
+actions:
+  - type: suggest
+    conditions:
+      # Pattern 1: Hardcoded AWS keys
+      - pattern: '(=|:)\s*("|')AKIA[0-9A-Z]{16}("|')'
+        message: |
+          Potential hardcoded AWS Access Key ID detected. Use Pydantic's `BaseSettings` to load this from environment variables instead.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Match: {{ .match }}
+
+      # Pattern 2: Hardcoded common secret key names
+      - pattern: '(?i)(SECRET_KEY|API_KEY|PASSWORD|DB_PASSWORD|DATABASE_URL)\s*(=|:)\s*("|').+("|')'
+        message: |
+          Potential hardcoded secret or configuration value '{{ .match_group[1] }}' detected. Use Pydantic's `BaseSettings` to load this from environment variables instead.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Match: {{ .match }}
+
+      # Pattern 3: Hardcoded database connection string pattern
+      - pattern: '(=|:)\s*("|')(postgresql|mysql|redis|amqp|mongodb):\/\/.+("|')'
+        message: |
+          Potential hardcoded database/service URL detected. Use Pydantic's `BaseSettings` to load this from environment variables instead.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Match: {{ .match }}
+
+      # Pattern 4: Direct use of os.environ or os.getenv
+      - pattern: 'os\.(environ\.get|getenv)\s*\('
+        message: |
+          Direct use of `os.environ.get` or `os.getenv` detected. Prefer accessing configuration via a Pydantic `BaseSettings` instance for consistency and type safety.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Match: {{ .match }}
+
+metadata:
+  priority: high
+  version: 1.1 # Incremented version
+  references:
+    - Project README section on Configuration / Environment Variables
+    - Pydantic Settings Documentation: https://docs.pydantic.dev/latest/concepts/settings/
+</rule> 

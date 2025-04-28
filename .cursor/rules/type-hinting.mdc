@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ # Enforce Type Hinting for Functions
+
+Ensure function parameters and return types are hinted. The project uses Python 3.10+.
+
+<rule>
+name: enforce_type_hinting
+description: Checks for missing type hints in Python function definitions (Project uses Python 3.10+).
+filters:
+  - type: file_extension
+    pattern: "\.py$"
+  # Match function definitions
+  - type: content
+    pattern: "^\s*def\s+"
+
+actions:
+  # Suggest adding type hints if parameters or return types are missing them
+  - type: suggest
+    conditions:
+      # Pattern 1: Missing parameter type hint (e.g., `def func(param):` or `def func(param,`)
+      - pattern: "def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\b([a-zA-Z_][a-zA-Z0-9_]*)(?![\w:])([,)])"
+        message: |
+          Missing type hint for parameter '{{ .match_group[1] }}'.
+          Please add type hints to all function parameters.
+
+          Location: {{ .filepath }}:{{ .line }}
+          Function Definition: {{ .match }}
+
+      # Pattern 2: Missing return type hint (e.g., `def func():` or `def func(p: str):`)
+      - pattern: "def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)(?!\s*->)\s*:"
+        message: |
+          Missing return type hint for function.
+          Please add a return type hint (e.g., `-> str:`, `-> None:`).
+
+          Location: {{ .filepath }}:{{ .line }}
+          Function Definition: {{ .match }}
+
+metadata:
+  priority: medium
+  version: 1.0
+  references:
+    - Project README section on Type Hinting
+</rule> 
