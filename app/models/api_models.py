@@ -11,8 +11,8 @@ class GenerateRequest(BaseModel):
 
 
 class CachedResponse(BaseModel):
-    status: Literal["cached"] = "cached"
-    image_url: HttpUrl = Field(..., description="URL of the cached image in S3")
+    status: Literal["cached", "generated"] = "cached"
+    image_url: HttpUrl = Field(..., description="URL of the cached or generated image in S3")
 
 
 class ProcessingResponse(BaseModel):
